@@ -12,13 +12,14 @@ const supabaseKey =
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// AUTOR
+// ===== AUTOR =====
 app.post("/autor", async (req, res) => {
   const { nome_aut, cpf_aut, datanascimento_aut } = req.body;
   const { data, error } = await supabase
     .from("autor")
     .insert([{ nome_aut, cpf_aut, datanascimento_aut }])
     .select();
+
   if (error) return res.status(400).json(error);
   res.json(data);
 });
@@ -29,7 +30,23 @@ app.get("/autor", async (req, res) => {
   res.json(data);
 });
 
-// PRODUTO ÚNICO: LIVRO, CDS OU DVDS
+// ===== DELETE AUTOR =====
+app.delete("/autor/:id", async (req, res) => {
+  const id = parseInt(req.params.id);
+
+  const { data, error } = await supabase
+    .from("autor")
+    .delete()
+    .eq("id_aut", id)
+    .select(); // importante para que data retorne os registros deletados
+
+  if (error) return res.status(400).json({ error: error.message });
+  if (data.length === 0) return res.status(404).json({ error: "Autor não encontrado" });
+
+  res.json({ message: "Autor deletado com sucesso", autor: data[0] });
+});
+
+// ===== PRODUTO ÚNICO: LIVRO, CD OU DVD =====
 app.post("/produto", async (req, res) => {
   const { tipo, aut_id, titulo, genero, paginas, armazenamento, tempo, valor } = req.body;
 
@@ -71,7 +88,7 @@ app.post("/produto", async (req, res) => {
   res.json(data);
 });
 
-// LISTAR PRODUTOS
+// ===== LISTAR PRODUTOS =====
 app.get("/produto/:tipo", async (req, res) => {
   const tipo = req.params.tipo;
   let tabela;
@@ -86,12 +103,8 @@ app.get("/produto/:tipo", async (req, res) => {
   res.json(data);
 });
 
-// SERVIDOR
+// ===== SERVIDOR =====
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
-
-
-
-
