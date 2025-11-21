@@ -9,7 +9,7 @@ app.use(cors());
 app.use(express.json());
 
 const supabaseUrl = "https://yzubdxptxxqojjnnplpx.supabase.co";
-const supabaseKey = "Ssb_publishable_cMz8U-EqR0IvQAjoj1ZkhQ_r0T8LCZa"; // Use sua key válida
+const supabaseKey = "Ssb_publishable_cMz8U-EqR0IvQAjoj1ZkhQ_r0T8LCZa";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // JWT Secret
