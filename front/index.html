@@ -49,6 +49,20 @@
         button:hover {
             background: #c40000;
         }
+
+        .top-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .top-buttons button {
+            background: #3f5efb;
+        }
+
+        .top-buttons button:hover {
+            background: #1f3bb8;
+        }
     </style>
 </head>
 
@@ -56,12 +70,26 @@
 
     <h1>Autores e Seus Produtos</h1>
 
-    <a href="cadastro.html">
-        <button style="background:#3f5efb; margin-bottom:20px;">+ Cadastrar Autor</button>
-    </a>
+    <div class="top-buttons">
+        <a href="cadastro.html">
+            <button>+ Cadastrar Autor</button>
+        </a>
+        <button id="btnLogout">Deslogar</button>
+    </div>
 
     <div id="listaAutores"></div>
 
     <script src="js/listar.js"></script>
+    <script>
+        const btnLogout = document.getElementById("btnLogout");
+
+        btnLogout.addEventListener("click", () => {
+            // Remove token do localStorage
+            localStorage.removeItem("token"); 
+            // Redireciona para a página inicial
+            window.location.href = "inicio.html";
+        });
+    </script>
+
 </body>
 </html>
