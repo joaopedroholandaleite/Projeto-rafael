@@ -7,9 +7,7 @@ app.use(cors());
 app.use(express.json());
 
 const supabaseUrl = "https://yzubdxptxxqojjnnplpx.supabase.co";
-const supabaseKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6dWJkeHB0eHhxb2pqbm5wbHB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI1MDc1NTQsImV4cCI6MjA3ODA4MzU1NH0.rK92NTcQBaG8YM54qVc9XWtYLbGgKbRVH6TbP6W7LUk";
-
+const supabaseKey = "sb_publishable_cMz8U-EqR0IvQAjoj1ZkhQ_r0T8LCZa"; // Coloque sua key válida
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ===== AUTOR =====
@@ -34,51 +32,32 @@ app.get("/autor", async (req, res) => {
 app.delete("/autor/:id", async (req, res) => {
   const id = parseInt(req.params.id);
 
-  const { data, error } = await supabase
-    .from("autor")
-    .delete()
-    .eq("id_aut", id)
-    .select(); // importante para que data retorne os registros deletados
+  // Deleta produtos do autor primeiro
+  await supabase.from("livro").delete().eq("aut_id", id);
+  await supabase.from("cds").delete().eq("aut_id", id);
+  await supabase.from("dvds").delete().eq("aut_id", id);
 
-  if (error) return res.status(400).json({ error: error.message });
-  if (data.length === 0) return res.status(404).json({ error: "Autor não encontrado" });
-
-  res.json({ message: "Autor deletado com sucesso", autor: data[0] });
+  const { data, error } = await supabase.from("autor").delete().eq("id_aut", id).select();
+  if (error) return res.status(400).json(error);
+  res.json({ message: "Autor deletado", autor: data[0] });
 });
 
-// ===== PRODUTO ÚNICO: LIVRO, CD OU DVD =====
+// ===== PRODUTO =====
 app.post("/produto", async (req, res) => {
   const { tipo, aut_id, titulo, genero, paginas, armazenamento, tempo, valor } = req.body;
 
-  let tabela, registro;
+  let tabela;
+  let registro;
 
   if (tipo === "livro") {
     tabela = "livro";
-    registro = {
-      aut_id,
-      titulo_liv: titulo,
-      generoliterario_liv: genero,
-      numeropaginas_liv: paginas,
-      valor_liv: valor,
-    };
+    registro = { aut_id, titulo_liv: titulo, generoliterario_liv: genero, numeropaginas_liv: paginas, valor_liv: valor };
   } else if (tipo === "cd") {
     tabela = "cds";
-    registro = {
-      aut_id,
-      titulo_cds: titulo,
-      armazenamentocds: armazenamento,
-      tempodevideo_cds: tempo,
-      valor,
-    };
+    registro = { aut_id, titulo_cds: titulo, armazenamentocds: armazenamento, tempo_audio: tempo, valor };
   } else if (tipo === "dvd") {
     tabela = "dvds";
-    registro = {
-      aut_id,
-      titulo_dvd: titulo,
-      armazenamentodvd: armazenamento,
-      tempodevideo_dvd: tempo,
-      valor,
-    };
+    registro = { aut_id, titulo_dvd: titulo, armazenamentodvd: armazenamento, tempo_video: tempo, valor };
   } else {
     return res.status(400).json({ error: "Tipo de produto inválido" });
   }
@@ -88,23 +67,19 @@ app.post("/produto", async (req, res) => {
   res.json(data);
 });
 
-// ===== LISTAR PRODUTOS =====
-app.get("/produto/:tipo", async (req, res) => {
-  const tipo = req.params.tipo;
-  let tabela;
+// ===== LISTAR TODOS OS PRODUTOS =====
+app.get("/produtos", async (req, res) => {
+  try {
+    const { data: livros } = await supabase.from("livro").select("*");
+    const { data: cds } = await supabase.from("cds").select("*");
+    const { data: dvds } = await supabase.from("dvds").select("*");
 
-  if (tipo === "livro") tabela = "livro";
-  else if (tipo === "cd") tabela = "cds";
-  else if (tipo === "dvd") tabela = "dvds";
-  else return res.status(400).json({ error: "Tipo de produto inválido" });
-
-  const { data, error } = await supabase.from(tabela).select("*");
-  if (error) return res.status(400).json(error);
-  res.json(data);
+    res.json({ livros, cds, dvds });
+  } catch (error) {
+    res.status(400).json({ error: error.message || error });
+  }
 });
 
 // ===== SERVIDOR =====
 const PORT = 3000;
-app.listen(PORT, () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
-});
+app.listen(PORT, () => console.log(`Servidor rodando em http://localhost:${PORT}`));

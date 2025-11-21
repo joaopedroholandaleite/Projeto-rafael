@@ -1,67 +1,70 @@
-const ul = document.getElementById("lista-autores");
+const lista = document.getElementById("listaAutores");
 
-// Função para buscar e renderizar autores
-function listarAutores() {
-  fetch("http://localhost:3000/autor")
-    .then(res => res.json())
-    .then(autores => {
-      ul.innerHTML = ""; // limpa a lista antes de renderizar
-
-      if (autores.length === 0) {
-        ul.innerHTML = "<li style='color:#ccc; padding:10px;'>Nenhum autor encontrado.</li>";
-        return;
-      }
-
-      autores.forEach(a => {
-        const li = document.createElement("li");
-        li.style.display = "flex";
-        li.style.justifyContent = "space-between";
-        li.style.alignItems = "center";
-        li.style.backgroundColor = "#1e1e1e";
-        li.style.color = "#fff";
-        li.style.padding = "12px 15px";
-        li.style.borderRadius = "10px";
-        li.style.marginBottom = "10px";
-        li.style.boxShadow = "0 2px 6px rgba(0,0,0,0.3)";
-        li.textContent = `${a.nome_aut} — CPF: ${a.cpf_aut}`;
-
-        // Criar botão de deletar
-        const btnDelete = document.createElement("button");
-        btnDelete.textContent = "Deletar";
-        btnDelete.style.backgroundColor = "#ff4d4d";
-        btnDelete.style.color = "#fff";
-        btnDelete.style.border = "none";
-        btnDelete.style.padding = "6px 12px";
-        btnDelete.style.borderRadius = "8px";
-        btnDelete.style.cursor = "pointer";
-        btnDelete.style.fontWeight = "bold";
-        btnDelete.style.transition = "0.2s";
-
-        btnDelete.addEventListener("mouseover", () => btnDelete.style.backgroundColor = "#cc0000");
-        btnDelete.addEventListener("mouseout", () => btnDelete.style.backgroundColor = "#ff4d4d");
-
-        btnDelete.addEventListener("click", () => {
-          if (confirm(`Deseja realmente deletar o autor ${a.nome_aut}?`)) {
-            fetch(`http://localhost:3000/autor/${a.id_aut}`, { method: "DELETE" })
-              .then(res => {
-                if (res.ok) {
-                  alert("Autor deletado com sucesso!");
-                  listarAutores(); // atualizar a lista
-                } else {
-                  alert("Erro ao deletar autor.");
-                }
-              })
-              .catch(err => console.error("Erro:", err));
-          }
-        });
-
-        li.appendChild(btnDelete);
-        ul.appendChild(li);
-      });
-    })
-    .catch(err => console.error("Erro:", err));
+async function deletarAutor(id, nome) {
+    if (!confirm(`Deseja realmente deletar o autor "${nome}" e TODOS os produtos dele?`)) return;
+    try {
+        const res = await fetch(`http://localhost:3000/autor/${id}`, { method: "DELETE" });
+        if (!res.ok) return alert("Erro ao deletar autor.");
+        alert("Autor deletado com sucesso!");
+        listarTudo();
+    } catch (err) {
+        console.error(err);
+        alert("Erro ao deletar autor.");
+    }
 }
 
-// Chama a função inicialmente para carregar a lista
-listarAutores();
+async function listarTudo() {
+    lista.innerHTML = "<p>Carregando...</p>";
 
+    try {
+        const autoresRes = await fetch("http://localhost:3000/autor");
+        const autores = await autoresRes.json();
+
+        lista.innerHTML = "";
+
+        for (const autor of autores) {
+            const produtosRes = await fetch(`http://localhost:3000/autor/${autor.id_aut}/produtos`);
+            const produtos = await produtosRes.json();
+
+            const card = document.createElement("div");
+            card.classList.add("autor-card");
+
+            card.innerHTML = `
+                <h2>${autor.nome_aut}</h2>
+                <p><strong>CPF:</strong> ${autor.cpf_aut}</p>
+                <p><strong>Nascimento:</strong> ${autor.datanascimento_aut}</p>
+
+                <div class="produto-titulo">📘 Livros</div>
+                ${produtos.livros.length ? produtos.livros.map(l => `
+                    <div class="produto-item">
+                        • <b>${l.titulo_liv}</b> — ${l.generoliterario_liv} — ${l.numeropaginas_liv} páginas — R$ ${Number(l.valor_liv).toFixed(2).replace(".", ",")}
+                    </div>
+                `).join('') : "<div class='produto-item'>Nenhum livro cadastrado.</div>"}
+
+                <div class="produto-titulo">💽 CDs</div>
+                ${produtos.cds.length ? produtos.cds.map(c => `
+                    <div class="produto-item">
+                        • <b>${c.titulo_cds}</b> — ${c.armazenamentocds} GB — ${c.tempo_audio} min — R$ ${Number(c.valor_cds).toFixed(2).replace(".", ",")}
+                    </div>
+                `).join('') : "<div class='produto-item'>Nenhum CD cadastrado.</div>"}
+
+                <div class="produto-titulo">📀 DVDs</div>
+                ${produtos.dvds.length ? produtos.dvds.map(d => `
+                    <div class="produto-item">
+                        • <b>${d.titulo_dvd}</b> — ${d.armazenamentodvd} GB — ${d.tempo_video} min — R$ ${Number(d.valor_dvd).toFixed(2).replace(".", ",")}
+                    </div>
+                `).join('') : "<div class='produto-item'>Nenhum DVD cadastrado.</div>"}
+
+                <button onclick="deletarAutor(${autor.id_aut}, '${autor.nome_aut}')">Deletar Autor</button>
+            `;
+
+            lista.appendChild(card);
+        }
+
+    } catch (err) {
+        console.error(err);
+        lista.innerHTML = "<p>Erro ao carregar autores.</p>";
+    }
+}
+
+listarTudo();

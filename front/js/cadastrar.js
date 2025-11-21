@@ -15,7 +15,7 @@ function mascaraValor(valor) {
   return valor;
 }
 
-// ===== Formulário =====
+// ===== Elementos do formulário =====
 const formCadastro = document.getElementById("formCadastro");
 const produtosContainer = document.getElementById("produtosContainer");
 const addProdutoBtn = document.getElementById("addProduto");
@@ -26,7 +26,7 @@ cpfInput.addEventListener("input", (e) => {
   e.target.value = mascaraCPF(e.target.value);
 });
 
-// Adiciona nova caixa de produto
+// ===== Função para criar box de produto =====
 function criarProdutoBox() {
   const box = document.createElement("div");
   box.classList.add("produto-box");
@@ -53,18 +53,18 @@ function criarProdutoBox() {
     </div>
 
     <div class="camposCD" style="display:none;">
-      <label>Armazenamento</label>
+      <label>Armazenamento (GB)</label>
       <input type="text" class="armazenamentoCD">
-      <label>Tempo de Vídeo (minutos)</label>
+      <label>Tempo de Áudio (min)</label>
       <input type="number" class="tempoCD">
       <label>Valor</label>
       <input type="text" class="valorProduto">
     </div>
 
     <div class="camposDVD" style="display:none;">
-      <label>Armazenamento</label>
+      <label>Armazenamento (GB)</label>
       <input type="text" class="armazenamentoDVD">
-      <label>Tempo de Vídeo (minutos)</label>
+      <label>Tempo de Vídeo (min)</label>
       <input type="number" class="tempoDVD">
       <label>Valor</label>
       <input type="text" class="valorProduto">
@@ -74,7 +74,7 @@ function criarProdutoBox() {
     <hr>
   `;
 
-  // Mostra campos corretos conforme tipo selecionado
+  // Exibir campos conforme tipo selecionado
   const tipoSelect = box.querySelector(".tipoProduto");
   tipoSelect.addEventListener("change", () => {
     box.querySelector(".camposLivro").style.display = tipoSelect.value === "livro" ? "block" : "none";
@@ -82,15 +82,14 @@ function criarProdutoBox() {
     box.querySelector(".camposDVD").style.display = tipoSelect.value === "dvd" ? "block" : "none";
   });
 
-  // Máscara para valor
-  const valorInputs = box.querySelectorAll(".valorProduto");
-  valorInputs.forEach(input => {
+  // Máscara de valor
+  box.querySelectorAll(".valorProduto").forEach(input => {
     input.addEventListener("input", (e) => {
       e.target.value = mascaraValor(e.target.value);
     });
   });
 
-  // Botão remover produto
+  // Remover box
   box.querySelector(".removeProduto").addEventListener("click", () => box.remove());
 
   produtosContainer.appendChild(box);
@@ -99,72 +98,75 @@ function criarProdutoBox() {
 // Botão adicionar produto
 addProdutoBtn.addEventListener("click", criarProdutoBox);
 
-// Submit do formulário
+// ===== Envio do formulário =====
 formCadastro.addEventListener("submit", async (e) => {
   e.preventDefault();
 
+  // Dados do autor
   const autor = {
     nome_aut: document.getElementById("nome_aut").value,
     cpf_aut: document.getElementById("cpf_aut").value.replace(/\D/g, ""),
     datanascimento_aut: document.getElementById("datanascimento_aut").value
   };
 
-  const autorRes = await fetch("http://localhost:3000/autor", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(autor)
-  });
+  try {
+    // Cadastra autor
+    const autorRes = await fetch("http://localhost:3000/autor", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(autor)
+    });
 
-  const autorData = await autorRes.json();
-  if (!autorData[0] || !autorData[0].id_aut) {
-    alert("Erro ao cadastrar autor!");
-    return;
-  }
+    const autorData = await autorRes.json();
 
-  const aut_id = autorData[0].id_aut;
-
-  // Cadastro de produtos
-  const boxes = produtosContainer.querySelectorAll(".produto-box");
-  for (const box of boxes) {
-    const tipo = box.querySelector(".tipoProduto").value;
-    const titulo = box.querySelector(".tituloProduto").value;
-    const valorRaw = box.querySelector(".valorProduto")?.value || "0,00";
-    const valor = valorRaw.replace(/\./g, "").replace(",", ".");
-
-    let bodyData = { aut_id, titulo, valor };
-
-    if (tipo === "livro") {
-      bodyData = {
-        aut_id,
-        titulo_liv: titulo,
-        generoliterario_liv: box.querySelector(".generoLivro").value,
-        numeropaginas_liv: box.querySelector(".paginasLivro").value,
-        valor_liv: parseFloat(valor)
-      };
-      await fetch("http://localhost:3000/livro", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(bodyData) });
-    } else if (tipo === "cd") {
-      bodyData = {
-        aut_id,
-        titulo_cds: titulo,
-        armazenamentocds: box.querySelector(".armazenamentoCD").value,
-        tempodevideo_cds: box.querySelector(".tempoCD").value,
-        valor_cds: parseFloat(valor)
-      };
-      await fetch("http://localhost:3000/cds", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(bodyData) });
-    } else if (tipo === "dvd") {
-      bodyData = {
-        aut_id,
-        titulo_dvd: titulo,
-        armazenamentodvd: box.querySelector(".armazenamentoDVD").value,
-        tempodevideo_dvd: box.querySelector(".tempoDVD").value,
-        valor_dvd: parseFloat(valor)
-      };
-      await fetch("http://localhost:3000/dvds", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(bodyData) });
+    if (!autorData[0]?.id_aut) {
+      alert("Erro ao cadastrar autor!");
+      console.log("Resposta ao cadastrar autor:", autorData);
+      return;
     }
+
+    const aut_id = autorData[0].id_aut;
+
+    // Cadastra produtos
+    const boxes = produtosContainer.querySelectorAll(".produto-box");
+
+    for (const box of boxes) {
+      const tipo = box.querySelector(".tipoProduto").value;
+      const titulo = box.querySelector(".tituloProduto").value;
+      const valorRaw = box.querySelector(".valorProduto")?.value || "0,00";
+      const valor = parseFloat(valorRaw.replace(/\./g, "").replace(",", "."));
+
+      // Corpo da requisição
+      let body = { tipo, aut_id, titulo };
+
+      if (tipo === "livro") {
+        body.genero = box.querySelector(".generoLivro").value;
+        body.paginas = box.querySelector(".paginasLivro").value;
+        body.valor = valor;
+      } else if (tipo === "cd") {
+        body.armazenamento = box.querySelector(".armazenamentoCD").value;
+        body.tempo = box.querySelector(".tempoCD").value;
+        body.valor = valor;
+      } else if (tipo === "dvd") {
+        body.armazenamento = box.querySelector(".armazenamentoDVD").value;
+        body.tempo = box.querySelector(".tempoDVD").value;
+        body.valor = valor;
+      }
+
+      // Envia para o endpoint único /produto
+      await fetch("http://localhost:3000/produto", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+    }
+
+    document.getElementById("msg").innerText = "Cadastro realizado com sucesso!";
+    formCadastro.reset();
+    produtosContainer.innerHTML = "";
+
+  } catch (err) {
+    console.error("Erro geral ao cadastrar:", err);
+    alert("Erro ao cadastrar. Veja o console para detalhes.");
   }
-
-  document.getElementById("msg").innerText = "Cadastro realizado com sucesso!";
-  formCadastro.reset();
-  produtosContainer.innerHTML = "";
 });
-

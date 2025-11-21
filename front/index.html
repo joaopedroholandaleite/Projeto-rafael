@@ -2,19 +2,66 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Lista de Autores</title>
+    <title>Autores e Produtos</title>
     <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        body {
+            background: #f4f4f4;
+            font-family: Arial;
+            padding: 25px;
+        }
+
+        .autor-card {
+            background: #070000;
+            padding: 18px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.15);
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        .produto-titulo {
+            font-weight: bold;
+            margin-top: 15px;
+            border-left: 4px solid #3f5efb;
+            padding-left: 6px;
+        }
+
+        .produto-item {
+            margin-left: 12px;
+            margin-bottom: 6px;
+        }
+
+        button {
+            margin-top: 10px;
+            background: #ff4d4d;
+            color: white;
+            padding: 10px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #c40000;
+        }
+    </style>
 </head>
+
 <body>
-    <div class="container">
-        <h1>Autores cadastrados</h1>
 
-        <a href="cadastro.html">Cadastrar novo autor</a>
+    <h1>Autores e Seus Produtos</h1>
 
-        <ul id="lista-autores"></ul>
-    </div>
+    <a href="cadastro.html">
+        <button style="background:#3f5efb; margin-bottom:20px;">+ Cadastrar Autor</button>
+    </a>
+
+    <div id="listaAutores"></div>
 
     <script src="js/listar.js"></script>
 </body>
 </html>
-
