@@ -8,6 +8,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+
 // 🔑 Configurar seu Supabase
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -198,3 +199,4 @@ app.get("/auth/facebook", async (req, res) => {
 /* ====================================================== */
 
 app.listen(3000, () => console.log("API rodando na porta 3000"));
+module.exports = app;
