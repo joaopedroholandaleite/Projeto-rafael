@@ -1,95 +1,384 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>Autores e Produtos</title>
-    <link rel="stylesheet" href="css/style.css">
-
-    <style>
-        body {
-            background: #f4f4f4;
-            font-family: Arial;
-            padding: 25px;
-        }
-
-        .autor-card {
-            background: #070000;
-            padding: 18px;
-            margin-bottom: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 8px rgba(0,0,0,0.15);
-        }
-
-        h2 {
-            margin-top: 0;
-        }
-
-        .produto-titulo {
-            font-weight: bold;
-            margin-top: 15px;
-            border-left: 4px solid #3f5efb;
-            padding-left: 6px;
-        }
-
-        .produto-item {
-            margin-left: 12px;
-            margin-bottom: 6px;
-        }
-
-        button {
-            margin-top: 10px;
-            background: #ff4d4d;
-            color: white;
-            padding: 10px 12px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: #c40000;
-        }
-
-        .top-buttons {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .top-buttons button {
-            background: #3f5efb;
-        }
-
-        .top-buttons button:hover {
-            background: #1f3bb8;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Biblioteca - Frontend</title>
+  <style>
+    :root{--bg:#f3f4f6;--card:#ffffff;--accent:#1f6feb;--muted:#6b7280}
+    *{box-sizing:border-box;font-family:Inter,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial}
+    body{margin:0;background:linear-gradient(180deg,var(--bg),#e9eef8);min-height:100vh;color:#111}
+    .container{max-width:1100px;margin:28px auto;padding:20px}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+    .brand{display:flex;gap:12px;align-items:center}
+    .logo{width:48px;height:48px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:white;font-weight:700}
+    h1{font-size:20px;margin:0}
+    .card{background:var(--card);border-radius:12px;padding:16px;box-shadow:0 6px 18px rgba(16,24,40,0.06)}
+    nav{display:flex;gap:8px}
+    button, .btn{background:transparent;border:1px solid #e6e9ef;padding:8px 12px;border-radius:10px;cursor:pointer}
+    .btn-primary{background:var(--accent);color:white;border:none}
+    .grid{display:grid;grid-template-columns:1fr 360px;gap:18px}
+    form{display:flex;flex-direction:column;gap:8px}
+    input,select,textarea{padding:8px;border:1px solid #e2e8f0;border-radius:8px}
+    .list{display:flex;flex-direction:column;gap:8px}
+    .item{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:8px;border:1px solid #eef2ff}
+    .muted{color:var(--muted);font-size:13px}
+    .small{font-size:13px}
+    footer{margin-top:18px;text-align:center;color:var(--muted)}
+    .actions{display:flex;gap:6px}
+    .tabs{display:flex;gap:6px;margin-bottom:12px}
+    .tab{padding:8px 12px;border-radius:8px;border:1px solid transparent;cursor:pointer}
+    .tab.active{background:#eef2ff;border-color:#cfe0ff}
+    .hidden{display:none}
+    .hint{font-size:13px;color:#334155}
+  </style>
 </head>
-
 <body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo">B</div>
+        <div>
+          <h1>Biblioteca (Frontend)</h1>
+          <div class="muted small">API esperada: http://localhost:3000</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <div id="userBox" class="muted small">Não autenticado</div>
+        <button id="btnGoogle" class="btn">Login Google</button>
+        <button id="btnFacebook" class="btn">Login Facebook</button>
+        <button id="btnShowLogin" class="btn btn-primary">Login/Registrar</button>
+      </div>
+    </header>
 
-    <h1>Autores e Seus Produtos</h1>
+    <section class="grid">
+      <div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <strong>Conteúdo</strong>
+            <div class="tabs" role="tablist">
+              <div class="tab active" data-tab="autores">Autores</div>
+              <div class="tab" data-tab="livros">Livros</div>
+              <div class="tab" data-tab="dvds">DVDs</div>
+              <div class="tab" data-tab="cds">CDs</div>
+            </div>
+          </div>
 
-    <div class="top-buttons">
-        <a href="cadastro.html">
-            <button>+ Cadastrar Autor</button>
-        </a>
-        <button id="btnLogout">Deslogar</button>
+          <div id="autores" class="panel">
+            <div style="margin:12px 0;display:flex;justify-content:space-between;align-items:center">
+              <div class="hint">Lista de autores (GET livre)</div>
+              <div>
+                <button id="refreshAutores" class="btn">Atualizar</button>
+              </div>
+            </div>
+            <div id="listaAutores" class="list"></div>
+          </div>
+
+          <div id="livros" class="panel hidden">
+            <div style="margin:12px 0;display:flex;justify-content:space-between;align-items:center">
+              <div class="hint">Livros (cada livro tem um autor)</div>
+              <div>
+                <button id="refreshLivros" class="btn">Atualizar</button>
+              </div>
+            </div>
+            <div id="listaLivros" class="list"></div>
+          </div>
+
+          <div id="dvds" class="panel hidden">
+            <div style="margin:12px 0;display:flex;justify-content:space-between;align-items:center">
+              <div class="hint">DVDs</div>
+              <div>
+                <button id="refreshDvds" class="btn">Atualizar</button>
+              </div>
+            </div>
+            <div id="listaDvds" class="list"></div>
+          </div>
+
+          <div id="cds" class="panel hidden">
+            <div style="margin:12px 0;display:flex;justify-content:space-between;align-items:center">
+              <div class="hint">CDs</div>
+              <div>
+                <button id="refreshCds" class="btn">Atualizar</button>
+              </div>
+            </div>
+            <div id="listaCds" class="list"></div>
+          </div>
+        </div>
+
+        <footer class="muted">GET livre; POST/PUT/DELETE -> precisa estar autenticado</footer>
+      </div>
+
+      <aside>
+        <div class="card">
+          <strong id="sideTitle">Criar Autor</strong>
+
+          <form id="formAutor">
+            <input type="hidden" id="autorId" />
+            <label class="small">Nome</label>
+            <input id="autorNome" required />
+
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button type="submit" class="btn btn-primary">Salvar</button>
+              <button type="button" id="autorCancel" class="btn">Limpar</button>
+            </div>
+          </form>
+
+          <hr style="margin:12px 0" />
+
+          <strong id="sideTitleLivro">Criar Livro / DVD / CD</strong>
+          <form id="formMidia">
+            <input type="hidden" id="midiaId" />
+            <label class="small">Tipo</label>
+            <select id="midiaTipo">
+              <option value="livro">Livro</option>
+              <option value="dvd">DVD</option>
+              <option value="cd">CD</option>
+            </select>
+            <label class="small">Titulo</label>
+            <input id="midiaTitulo" required />
+            <label class="small">Ano / Duração / Faixas</label>
+            <input id="midiaExtra" placeholder="ex: ano para livro, minutos para dvd, nº faixas para cd" />
+            <label class="small">Autor</label>
+            <select id="midiaAutor"></select>
+
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button type="submit" class="btn btn-primary">Salvar</button>
+              <button type="button" id="midiaCancel" class="btn">Limpar</button>
+            </div>
+          </form>
+
+          <hr style="margin:12px 0" />
+          <div class="muted small">Autenticação</div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button id="btnLogout" class="btn">Logout</button>
+          </div>
+
+        </div>
+      </aside>
+    </section>
+  </div>
+
+  <!-- Login modal (simples) -->
+  <div id="loginModal" class="card" style="position:fixed;right:20px;bottom:20px;max-width:360px;display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <strong>Entrar / Registrar (email)</strong>
+      <button id="closeLogin" class="btn">X</button>
     </div>
+    <form id="formLogin">
+      <label class="small">Email</label>
+      <input id="loginEmail" type="email" required />
+      <label class="small">Senha</label>
+      <input id="loginSenha" type="password" required />
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button type="submit" class="btn btn-primary">Entrar</button>
+        <button type="button" id="btnRegister" class="btn">Registrar</button>
+      </div>
+    </form>
+    <div class="muted small" style="margin-top:8px">Ou use Google/Facebook no cabeçalho (redireciona para o provedor).</div>
+  </div>
 
-    <div id="listaAutores"></div>
+  <script>
+    const API = 'http://localhost:3000';
+    let token = localStorage.getItem('token') || null;
 
-    <script src="js/listar.js"></script>
-    <script>
-        const btnLogout = document.getElementById("btnLogout");
+    // UI refs
+    const userBox = document.getElementById('userBox');
+    const listaAutores = document.getElementById('listaAutores');
+    const listaLivros = document.getElementById('listaLivros');
+    const listaDvds = document.getElementById('listaDvds');
+    const listaCds = document.getElementById('listaCds');
+    const midiaAutor = document.getElementById('midiaAutor');
 
-        btnLogout.addEventListener("click", () => {
-            // Remove token do localStorage
-            localStorage.removeItem("token"); 
-            // Redireciona para a página inicial
-            window.location.href = "inicio.html";
-        });
-    </script>
+    function setAuthToken(t){ token = t; if(t) localStorage.setItem('token', t); else localStorage.removeItem('token'); updateAuthUI(); }
+    function updateAuthUI(){ userBox.textContent = token? 'Autenticado — token salvo' : 'Não autenticado'; }
 
+    // Tabs
+    document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click', e=>{
+      document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+      e.target.classList.add('active');
+      document.querySelectorAll('.panel').forEach(p=>p.classList.add('hidden'));
+      document.getElementById(e.target.dataset.tab).classList.remove('hidden');
+    }));
+
+    // Fetch helpers
+    async function api(url, opts={}){
+      opts.headers = opts.headers || {};
+      if(token) opts.headers['Authorization'] = 'Bearer '+token;
+      opts.headers['Content-Type'] = 'application/json';
+      const res = await fetch(API+url, opts);
+      const text = await res.text();
+      try{ return JSON.parse(text); }catch(e){ return text; }
+    }
+
+    // Loaders
+    async function loadAutores(){
+      const data = await api('/autor');
+      midiaAutor.innerHTML = '';
+      listaAutores.innerHTML = '';
+      if(!data || data.error) { listaAutores.innerHTML = '<div class="muted">Erro ao carregar</div>'; return }
+      data.forEach(a=>{
+        const el = document.createElement('div'); el.className='item';
+        el.innerHTML = `<div><strong>${escape(a.nome)}</strong><div class="muted small">id: ${a.id}</div></div>`;
+        const actions = document.createElement('div'); actions.className='actions';
+        const btnEdit = document.createElement('button'); btnEdit.textContent='Editar'; btnEdit.className='btn'; btnEdit.onclick=()=>editAutor(a);
+        const btnDel = document.createElement('button'); btnDel.textContent='Deletar'; btnDel.className='btn'; btnDel.onclick=()=>deleteAutor(a.id);
+        actions.appendChild(btnEdit); actions.appendChild(btnDel);
+        el.appendChild(actions);
+        listaAutores.appendChild(el);
+
+        const opt = document.createElement('option'); opt.value = a.id; opt.textContent = a.nome; midiaAutor.appendChild(opt);
+      });
+    }
+
+    async function loadLivros(){
+      const data = await api('/livro');
+      listaLivros.innerHTML = '';
+      if(!data || data.error) { listaLivros.innerHTML = '<div class="muted">Erro ao carregar</div>'; return }
+      data.forEach(l=>{
+        const el = document.createElement('div'); el.className='item';
+        const author = l.autor ? l.autor.nome : '—';
+        el.innerHTML = `<div><strong>${escape(l.titulo)}</strong><div class="muted small">${author} — ${l.ano||''}</div></div>`;
+        const actions = document.createElement('div'); actions.className='actions';
+        const btnEdit = document.createElement('button'); btnEdit.textContent='Editar'; btnEdit.className='btn'; btnEdit.onclick=()=>editMidia('livro', l);
+        const btnDel = document.createElement('button'); btnDel.textContent='Deletar'; btnDel.className='btn'; btnDel.onclick=()=>deleteMidia('livro', l.id);
+        actions.appendChild(btnEdit); actions.appendChild(btnDel);
+        el.appendChild(actions);
+        listaLivros.appendChild(el);
+      });
+    }
+
+    async function loadDvds(){
+      const data = await api('/dvd');
+      listaDvds.innerHTML = '';
+      if(!data || data.error) { listaDvds.innerHTML = '<div class="muted">Erro ao carregar</div>'; return }
+      data.forEach(l=>{
+        const el = document.createElement('div'); el.className='item';
+        const author = l.autor ? l.autor.nome : '—';
+        el.innerHTML = `<div><strong>${escape(l.titulo)}</strong><div class="muted small">${author} — ${l.duracao||''}min</div></div>`;
+        const actions = document.createElement('div'); actions.className='actions';
+        const btnEdit = document.createElement('button'); btnEdit.textContent='Editar'; btnEdit.className='btn'; btnEdit.onclick=()=>editMidia('dvd', l);
+        const btnDel = document.createElement('button'); btnDel.textContent='Deletar'; btnDel.className='btn'; btnDel.onclick=()=>deleteMidia('dvd', l.id);
+        actions.appendChild(btnEdit); actions.appendChild(btnDel);
+        el.appendChild(actions);
+        listaDvds.appendChild(el);
+      });
+    }
+
+    async function loadCds(){
+      const data = await api('/cd');
+      listaCds.innerHTML = '';
+      if(!data || data.error) { listaCds.innerHTML = '<div class="muted">Erro ao carregar</div>'; return }
+      data.forEach(l=>{
+        const el = document.createElement('div'); el.className='item';
+        const author = l.autor ? l.autor.nome : '—';
+        el.innerHTML = `<div><strong>${escape(l.titulo)}</strong><div class="muted small">${author} — ${l.faixas||''} faixas</div></div>`;
+        const actions = document.createElement('div'); actions.className='actions';
+        const btnEdit = document.createElement('button'); btnEdit.textContent='Editar'; btnEdit.className='btn'; btnEdit.onclick=()=>editMidia('cd', l);
+        const btnDel = document.createElement('button'); btnDel.textContent='Deletar'; btnDel.className='btn'; btnDel.onclick=()=>deleteMidia('cd', l.id);
+        actions.appendChild(btnEdit); actions.appendChild(btnDel);
+        el.appendChild(actions);
+        listaCds.appendChild(el);
+      });
+    }
+
+    // CRUD Autor
+    document.getElementById('formAutor').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const id = document.getElementById('autorId').value;
+      const nome = document.getElementById('autorNome').value.trim();
+      if(!nome) return alert('Nome é obrigatório');
+      if(id){
+        const res = await api('/autor/'+id, { method:'PUT', body: JSON.stringify({ nome }) });
+        if(res.error) alert('Erro: '+JSON.stringify(res.error));
+      } else {
+        const res = await api('/autor', { method:'POST', body: JSON.stringify({ nome }) });
+        if(res.error) alert('Erro: '+JSON.stringify(res.error));
+      }
+      document.getElementById('autorNome').value=''; document.getElementById('autorId').value='';
+      await refreshAll();
+    });
+
+    function editAutor(a){ document.getElementById('autorId').value = a.id; document.getElementById('autorNome').value = a.nome; }
+    async function deleteAutor(id){ if(!confirm('Deletar autor '+id+'?')) return; const res = await api('/autor/'+id, { method:'DELETE' }); if(res.error) alert('Erro: '+JSON.stringify(res.error)); await refreshAll(); }
+
+    // Midia (livro/dvd/cd)
+    document.getElementById('formMidia').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const tipo = document.getElementById('midiaTipo').value;
+      const id = document.getElementById('midiaId').value;
+      const titulo = document.getElementById('midiaTitulo').value.trim();
+      const extra = document.getElementById('midiaExtra').value.trim();
+      const autor_id = document.getElementById('midiaAutor').value || null;
+      if(!titulo) return alert('Título obrigatório');
+      const payload = tipo==='livro' ? { titulo, ano: extra||null, autor_id } : (tipo==='dvd' ? { titulo, duracao: extra||null, autor_id } : { titulo, faixas: extra||null, autor_id });
+      if(id){
+        const res = await api('/'+tipo+'/'+id, { method:'PUT', body: JSON.stringify(payload) });
+        if(res.error) alert('Erro: '+JSON.stringify(res.error));
+      } else {
+        const res = await api('/'+tipo, { method:'POST', body: JSON.stringify(payload) });
+        if(res.error) alert('Erro: '+JSON.stringify(res.error));
+      }
+      document.getElementById('midiaId').value=''; document.getElementById('midiaTitulo').value=''; document.getElementById('midiaExtra').value='';
+      await refreshAll();
+    });
+
+    function editMidia(tipo, obj){
+      document.getElementById('midiaTipo').value = tipo;
+      document.getElementById('midiaId').value = obj.id;
+      document.getElementById('midiaTitulo').value = obj.titulo;
+      document.getElementById('midiaExtra').value = tipo==='livro' ? (obj.ano||'') : (tipo==='dvd' ? (obj.duracao||'') : (obj.faixas||''));
+      document.getElementById('midiaAutor').value = obj.autor_id || (obj.autor? obj.autor.id : '') || '';
+    }
+
+    async function deleteMidia(tipo,id){ if(!confirm('Deletar '+tipo+' '+id+'?')) return; const res = await api('/'+tipo+'/'+id, { method:'DELETE' }); if(res.error) alert('Erro: '+JSON.stringify(res.error)); await refreshAll(); }
+
+    // Login / Register
+    document.getElementById('btnShowLogin').addEventListener('click', ()=>{ document.getElementById('loginModal').style.display='block' });
+    document.getElementById('closeLogin').addEventListener('click', ()=>{ document.getElementById('loginModal').style.display='none' });
+    document.getElementById('btnGoogle').addEventListener('click', ()=>{ window.open(API + '/auth/google', '_blank') });
+    document.getElementById('btnFacebook').addEventListener('click', ()=>{ window.open(API + '/auth/facebook', '_blank') });
+
+    document.getElementById('formLogin').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      const senha = document.getElementById('loginSenha').value;
+      const res = await api('/auth/login', { method:'POST', body: JSON.stringify({ email, senha }) });
+      if(res.error) return alert('Erro: '+JSON.stringify(res.error));
+      // supabase retorna session.access_token
+      const access = res?.session?.access_token || res?.data?.session?.access_token || res?.access_token || null;
+      if(!access) { alert('Não foi possível recuperar token. Verifique resposta no console.'); console.log(res); return }
+      setAuthToken(access);
+      document.getElementById('loginModal').style.display='none';
+      await refreshAll();
+    });
+
+    document.getElementById('btnRegister').addEventListener('click', async ()=>{
+      const email = document.getElementById('loginEmail').value;
+      const senha = document.getElementById('loginSenha').value;
+      if(!email||!senha) return alert('Preencha email e senha');
+      // registrar via Supabase: tentar POST para /signup (não implementado no backend acima)
+      // alternativamente, usar /auth/login com conta já criada via dashboard.
+      alert('Registrar via Supabase UI (Dashboard) ou implemente /auth/signup no backend.');
+    });
+
+    document.getElementById('btnLogout').addEventListener('click', ()=>{ setAuthToken(null); alert('Deslogado'); });
+
+    // Refresh buttons
+    document.getElementById('refreshAutores').addEventListener('click', loadAutores);
+    document.getElementById('refreshLivros').addEventListener('click', loadLivros);
+    document.getElementById('refreshDvds').addEventListener('click', loadDvds);
+    document.getElementById('refreshCds').addEventListener('click', loadCds);
+
+    document.getElementById('autorCancel').addEventListener('click', ()=>{ document.getElementById('autorNome').value=''; document.getElementById('autorId').value=''; });
+    document.getElementById('midiaCancel').addEventListener('click', ()=>{ document.getElementById('midiaTipo').value='livro'; document.getElementById('midiaId').value=''; document.getElementById('midiaTitulo').value=''; document.getElementById('midiaExtra').value=''; });
+
+    async function refreshAll(){ await loadAutores(); await loadLivros(); await loadDvds(); await loadCds(); }
+
+    // escape helper
+    function escape(s){ return String(s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c])); }
+
+    // inicializa
+    updateAuthUI(); refreshAll();
+  </script>
 </body>
 </html>
